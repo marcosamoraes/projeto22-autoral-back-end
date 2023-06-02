@@ -1,0 +1,418 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  password       String
+  document       String           @unique
+  image          String?
+  whatsapp       String?
+  active         Boolean          @default(true)
+  role           Role             @default(USER)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  UserAddress    UserAddress[]
+  UserXClient    UserXClient[]
+  Client         Client[]
+  ClientEmployee ClientEmployee[]
+  Log            Log[]
+  Coupon         Coupon[]
+  Order          Order[]
+}
+
+model UserAddress {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  User       User     @relation(fields: [userId], references: [id])
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  zipcode    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Order      Order[]
+}
+
+model Franchise {
+  id     Int      @id @default(autoincrement())
+  name   String
+  slug   String
+  logo   String
+  active Boolean  @default(true)
+  domain String
+  Client Client[]
+}
+
+model Client {
+  id                  Int                   @id @default(autoincrement())
+  userId              Int
+  User                User                  @relation(fields: [userId], references: [id])
+  franchiseId         Int?
+  Franchise           Franchise?            @relation(fields: [franchiseId], references: [id])
+  name                String
+  slug                String
+  email               String
+  whatsapp            String?
+  logo                String?
+  banner              String?
+  document            String
+  domain              String?
+  ClientAddress       ClientAddress[]
+  UserXClient         UserXClient[]
+  Additional          Additional[]
+  ClientEmployee      ClientEmployee[]
+  ProductCategory     ProductCategory[]
+  Log                 Log[]
+  Product             Product[]
+  ClientSetting       ClientSetting[]
+  ClientPaymentMethod ClientPaymentMethod[]
+  Fidelity            Fidelity[]
+  Coupon              Coupon[]
+  Order               Order[]
+  ClientCategory      ClientCategory[]
+  ClientHour          ClientHour[]
+  ClientFreight       ClientFreight[]
+}
+
+model ClientAddress {
+  id         Int      @id @default(autoincrement())
+  clientId   Int
+  Client     Client   @relation(fields: [clientId], references: [id])
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  zipcode    String
+  latitude   Float?
+  longitude  Float?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ClientSetting {
+  id              Int           @id @default(autoincrement())
+  clientId        Int
+  Client          Client        @relation(fields: [clientId], references: [id])
+  minOrder        Float         @default(0)
+  allowWithdrawal Boolean       @default(false)
+  allowDelivery   Boolean       @default(false)
+  deliveryRange   Int           @default(0) // in kilometers
+  deliveryTimeMin Int           @default(0) // in minutes
+  deliveryTimeMax Int           @default(0) // in minutes
+  freightFree     Float         @default(0) // in kilometers
+  openingStatus   OpeningStatus @default(CLOSED)
+  colorPrimary    String        @default("#000000")
+  colorSecondary  String        @default("#ffffff")
+  about           String?
+  facebook        String?
+  instagram       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model ClientPaymentMethod {
+  id              Int           @id @default(autoincrement())
+  clientId        Int
+  Client          Client        @relation(fields: [clientId], references: [id])
+  paymentMethodId Int
+  PaymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model UserXClient {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  clientId  Int
+  Client    Client   @relation(fields: [clientId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClientEmployee {
+  id        Int      @id @default(autoincrement())
+  clientId  Int
+  Client    Client   @relation(fields: [clientId], references: [id])
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Additional {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  User        Client   @relation(fields: [userId], references: [id])
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductCategory {
+  id        Int        @id @default(autoincrement())
+  clientId  Int
+  Client    Client     @relation(fields: [clientId], references: [id])
+  name      String
+  sort      Int        @default(0)
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Product   Product[]
+  Fidelity  Fidelity[]
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  clientId  Int
+  Client    Client   @relation(fields: [clientId], references: [id])
+  action    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id                     Int                      @id @default(autoincrement())
+  clientId               Int
+  Client                 Client                   @relation(fields: [clientId], references: [id])
+  productCategoryId      Int
+  ProductCategory        ProductCategory          @relation(fields: [productCategoryId], references: [id])
+  name                   String
+  description            String?
+  image                  String?
+  price                  Float
+  promoPrice             Float?
+  sort                   Int                      @default(0)
+  featured               Boolean                  @default(false)
+  active                 Boolean                  @default(true)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  ProductAdditionalGroup ProductAdditionalGroup[]
+  OrderProduct           OrderProduct[]
+}
+
+model ProductAdditionalGroup {
+  id                Int                 @id @default(autoincrement())
+  productId         Int
+  Product           Product             @relation(fields: [productId], references: [id])
+  name              String
+  min               Int                 @default(0)
+  max               Int                 @default(0)
+  required          Boolean             @default(false)
+  sort              Int                 @default(0)
+  active            Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  ProductAdditional ProductAdditional[]
+}
+
+model ProductAdditional {
+  id                     Int                      @id @default(autoincrement())
+  groupId                Int
+  Group                  ProductAdditionalGroup   @relation(fields: [groupId], references: [id])
+  price                  Float
+  sort                   Int                      @default(0)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  OrderProductAdditional OrderProductAdditional[]
+}
+
+model PaymentMethod {
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  active              Boolean               @default(true)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  ClientPaymentMethod ClientPaymentMethod[]
+  Order               Order[]
+}
+
+model Fidelity {
+  id                Int                 @id @default(autoincrement())
+  clientId          Int
+  Client            Client              @relation(fields: [clientId], references: [id])
+  productCategoryId Int // Product category needed to get points
+  ProductCategory   ProductCategory     @relation(fields: [productCategoryId], references: [id])
+  redeemTable       FidelityRedeemTable // Table to use points
+  redeemId          Int // Id of the table to use points
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  Coupon            Coupon[]
+}
+
+model Coupon {
+  id         Int        @id @default(autoincrement())
+  clientId   Int
+  Client     Client     @relation(fields: [clientId], references: [id])
+  userId     Int?
+  User       User?      @relation(fields: [userId], references: [id])
+  fidelityId Int
+  Fidelity   Fidelity   @relation(fields: [fidelityId], references: [id])
+  type       CouponType @default(PERCENTAGE)
+  name       String
+  value      Float?
+  minOrder   Float?
+  code       String
+  quantity   Int?
+  hidden     Boolean    @default(false)
+  expireAt   DateTime?
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  Order      Order[]
+}
+
+model Order {
+  id              Int            @id @default(autoincrement())
+  clientId        Int
+  Client          Client         @relation(fields: [clientId], references: [id])
+  userId          Int
+  User            User           @relation(fields: [userId], references: [id])
+  userAddressId   Int
+  UserAddress     UserAddress    @relation(fields: [userAddressId], references: [id])
+  status          OrderStatus    @default(PENDING_PAYMENT)
+  paymentMethodId Int
+  PaymentMethod   PaymentMethod  @relation(fields: [paymentMethodId], references: [id])
+  couponId        Int?
+  Coupon          Coupon?        @relation(fields: [couponId], references: [id])
+  subtotal        Float
+  discount        Float
+  deliveryFee     Float
+  total           Float
+  changeAmount    Float?
+  scheduledAt     DateTime?
+  acceptedAt      DateTime?
+  preparedAt      DateTime?
+  deliveredAt     DateTime?
+  canceledAt      DateTime?
+  canceledReason  String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  OrderProduct    OrderProduct[]
+}
+
+model OrderProduct {
+  id                     Int                      @id @default(autoincrement())
+  orderId                Int
+  Order                  Order                    @relation(fields: [orderId], references: [id])
+  productId              Int
+  Product                Product                  @relation(fields: [productId], references: [id])
+  price                  Float
+  additionalTotal        Float
+  quantity               Int
+  total                  Float
+  observations           String?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  OrderProductAdditional OrderProductAdditional[]
+}
+
+model OrderProductAdditional {
+  id                Int               @id @default(autoincrement())
+  orderProductId    Int
+  OrderProduct      OrderProduct      @relation(fields: [orderProductId], references: [id])
+  additionalId      Int
+  ProductAdditional ProductAdditional @relation(fields: [additionalId], references: [id])
+  price             Float
+  quantity          Int
+  total             Float
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model Category {
+  id             Int              @id @default(autoincrement())
+  name           String
+  image          String?
+  sort           Int              @default(0)
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  ClientCategory ClientCategory[]
+}
+
+model ClientCategory {
+  id         Int      @id @default(autoincrement())
+  clientId   Int
+  Client     Client   @relation(fields: [clientId], references: [id])
+  categoryId Int
+  Category   Category @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ClientHour {
+  id        Int      @id @default(autoincrement())
+  clientId  Int
+  Client    Client   @relation(fields: [clientId], references: [id])
+  day       Int
+  open      String
+  close     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClientFreight {
+  id        Int      @id @default(autoincrement())
+  clientId  Int
+  Client    Client   @relation(fields: [clientId], references: [id])
+  distance  Float    @default(0) // Distance in km
+  price     Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_APPROVE
+  IN_PREPARATION
+  READY_FOR_TAKEAWAY
+  DELIVERING
+  DELIVERED
+  CANCELED
+}
+
+enum CouponType {
+  PERCENTAGE
+  AMOUNT
+  FREE_FREIGHT
+  FREE_PRODUCT
+}
+
+enum FidelityRedeemTable {
+  PRODUCT
+  CATEGORY
+}
+
+enum Role {
+  USER
+  CLIENT
+  FRANCHISE
+  ADMIN
+}
+
+enum OpeningStatus {
+  OPEN
+  CLOSED
+  FOLLOWING_TIME
+}
